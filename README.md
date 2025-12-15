@@ -20,8 +20,9 @@ Advanced Windows authentication token extraction and decryption tool for red tea
   ██████╔╝██║  ██║╚██████╔╝██║  ██╗███████╗██║  ██║
   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
-  Windows Auth Token Decryptor v1.1
-  DPAPI | TBRes | WAM | NGC | FOCI
+ [+] Windows Auth Token Decryptor v.1.1
+ [+] by r3alm0m1x82 - safebreach.it
+ [*] DPAPI | TBRes | WAM | NGC | FOCI
 
 ═══════════════════════════════════════════════════════════════
 ```
@@ -104,8 +105,8 @@ This tool is provided **for educational and authorized security testing purposes
 
 ### Legal Notice
 
-- ✅ **Authorized Use Only**: Use only on systems you own or have explicit written permission to test
-- ❌ **Unauthorized Access**: Using this tool without proper authorization may violate:
+- ✅ **Authorized Use Only**: Use only on systems you own or have explicit written permission to test.
+- ❌ **Unauthorized Access**: Using this tool without proper authorization may violate the laws of your country.
 
 
 ### Ethical Guidelines
