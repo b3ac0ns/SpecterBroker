@@ -1,6 +1,7 @@
 # SpecterBroker
 Advanced Windows authentication token extraction and decryption tool 
-for red team operations and security research
+for red team operations and security research.
+***The tool generates Json files that can be imported into the SpecterPortal tool to fully manage EntraID environments and Azure Resources!***
 
 ```
 ═══════════════════════════════════════════════════════════════
@@ -324,6 +325,7 @@ Two JSON files are generated:
   }
 }
 ```
+
 
 ### Token Types Explained
 
