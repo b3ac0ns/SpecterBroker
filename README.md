@@ -77,7 +77,7 @@ This tool is specifically designed for:
 - ⏱️ **Expiration Filtering** - Automatically skips expired access tokens
 - 🎯 **Office Master Detection** - Flags high-value Office 365 master tokens
 - 📁 **Recursive Processing** - Scans entire cache directory structures
-- 🔐 **Local Machine Scope** - Operates with current user context (no elevation required)
+- 🔐 **Local User Scope** - Operates with current user context (no elevation required)
 
 ---
 
@@ -556,6 +556,14 @@ Organizations can detect this activity by:
 
 ---
 
+### Author - r3alm0m1x82
+
+- Website: [safebreach.it](https://safebreach.it)
+- Company: SafeBreach.it
+- CyberSecurity Architect / Purple Team / Trainer & Security Researcher
+
+---
+
 ## 🙏 Credits - Inspiration & Research
 
 This tool builds upon research and techniques from:
@@ -570,15 +578,6 @@ This tool builds upon research and techniques from:
 - **System.Formats.Asn1** - ASN.1 parsing
 - **Costura.Fody** - Assembly embedding
 
----
-
-### Author - r3alm0m1x82
-
-- Website: [safebreach.it](https://safebreach.it)
-- Company: SafeBreach.it
-- CyberSecurity Architect / Purple Team / Trainer & Security Researcher
-
----
 
 ## 📜 License
 
