@@ -578,6 +578,8 @@ This tool builds upon research and techniques from:
 - Company: SafeBreach.it
 - CyberSecurity Architect / Purple Team / Trainer & Security Researcher
 
+---
+
 ## 📜 License
 
 ```
