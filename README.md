@@ -1,6 +1,13 @@
 # SpecterBroker
 Advanced Windows authentication token extraction and decryption tool for red team operations and security research
 
+### Author
+
+**r3alm0m1x82**  
+- Website: [safebreach.it](https://safebreach.it)
+- Company: SafeBreach.it
+- CyberSecurity Architect / Purple Team / Trainer & Security Researcher
+
 ```
 ═══════════════════════════════════════════════════════════════
  ▓▒░ 01010011 01010000 01000101 01000011 01010100 01000101 01010010 ░▒▓
@@ -556,22 +563,13 @@ Organizations can detect this activity by:
 
 ---
 
-## 🙏 Credits
-
-### Author
-
-**r3alm0m1x82**  
-- Website: [safebreach.it](https://safebreach.it)
-- Company: SafeBreach.it
-- CyberSecurity Architect / Purple Team / Trainer & Security Researcher
-
-### Inspiration & Research
+## 🙏 Credits - Inspiration & Research
 
 This tool builds upon research and techniques from:
 
 - **AADBrokerDecrypt** by Jackullrich - winternl.com
-- **WAMBam** by Adam Chester - ([@_xpn_](https://twitter.com/_xpn_)
-- **ROADtools** by Dirk-jan Mollema ([@_dirkjan](https://twitter.com/_dirkjan))
+- **WAMBam** by Adam Chester - ([@_xpn_](https://twitter.com/_xpn_))
+- **ROADtools** by Dirk-jan Mollema - ([@_dirkjan](https://twitter.com/_dirkjan))
 
 ### Dependencies
 
@@ -605,25 +603,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-```
-
----
-
-## ⚡ Quick Reference
-
-```bash
-# Clone
-git clone https://github.com/r3alm0m1x82/SpecterBroker.git
-
-# Build
-cd SpecterBroker && build.bat
-
-# Run
-bin\Release\net48\SpecterBroker.exe
-
-# Output
-cache_export_type1_*.json  # TBRes format
-cache_export_type2_*.json  # BrokerDecrypt format
 ```
 
 ---
