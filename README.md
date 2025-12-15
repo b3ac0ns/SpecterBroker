@@ -36,22 +36,6 @@ Advanced Windows authentication token extraction and decryption tool for red tea
 
 ---
 
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Disclaimer](#disclaimer)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Output Format](#output-format)
-- [Technical Details](#technical-details)
-- [Detection & OPSEC](#detection--opsec)
-- [Credits](#credits)
-- [License](#license)
-
----
-
 ## 🎯 Overview
 
 **SpecterBroker** is a comprehensive post-exploitation tool designed for extracting and decrypting Windows authentication tokens from multiple sources. It targets the Windows Authentication Manager (WAM), Token Broker cache (TBRes), and related authentication subsystems to retrieve Access Tokens, Refresh Tokens, ID Tokens, and NGC (Next Generation Credentials) tokens.
