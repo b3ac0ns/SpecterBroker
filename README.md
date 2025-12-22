@@ -581,6 +581,7 @@ This tool builds upon research and techniques from:
 - **System.Formats.Asn1** - ASN.1 parsing
 - **Costura.Fody** - Assembly embedding
 
+---
 
 ## 📜 License
 
@@ -615,4 +616,5 @@ SOFTWARE.
 ---
 
 *Made with ❤️ for the red team community by r3alm0m1x82*
+
 
