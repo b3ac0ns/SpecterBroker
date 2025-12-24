@@ -53,7 +53,8 @@ This tool is specifically designed for:
 - **FOCI Detection**: Identifies Family of Client IDs (FOCI) enabled tokens
 - **Metadata Extraction**: Retrieves UPN, tenant ID, client ID, scopes, and expiration data
 - **Office Master Tokens**: Detects high-value Office 365 master tokens
-- **Video** - **Watch SpecterBroker/SpecterPortal vs CrowdStrike https://youtu.be/Gk7cB2Tl8Qo**
+
+## 🎥 - **Video** - **Watch SpecterBroker/SpecterPortal vs CrowdStrike -> https://youtu.be/Gk7cB2Tl8Qo**
 
 ---
 
@@ -617,6 +618,7 @@ SOFTWARE.
 ---
 
 *Made with ❤️ for the red team community by r3alm0m1x82*
+
 
 
 
