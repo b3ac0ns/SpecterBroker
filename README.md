@@ -565,8 +565,6 @@ Your support enables:
 - 🛠️ Better tools and documentation
 - 🎓 Educational content for the community
 
-See all [sponsorship tiers and benefits →](./SPONSORS.md)
-
 ---
 
 ## 🙏 Credits - Inspiration & Research
@@ -618,6 +616,7 @@ SOFTWARE.
 ---
 
 *Made with ❤️ for the red team community by r3alm0m1x82*
+
 
 
 
