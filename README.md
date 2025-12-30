@@ -575,12 +575,6 @@ This tool builds upon research and techniques from:
 - **WAMBam** by Adam Chester - ([@_xpn_](https://twitter.com/_xpn_))
 - **ROADtools** by Dirk-jan Mollema - ([@_dirkjan](https://twitter.com/_dirkjan))
 
-### Dependencies
-
-- **BouncyCastle.Cryptography** - Cryptographic operations
-- **System.Formats.Asn1** - ASN.1 parsing
-- **Costura.Fody** - Assembly embedding
-
 ---
 
 ## 📜 License
@@ -616,6 +610,7 @@ SOFTWARE.
 ---
 
 *Made with ❤️ for the red team community by r3alm0m1x82*
+
 
 
 
